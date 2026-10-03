@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: credit-scoring-staging
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Ashraf-Khabar/mlops-credit-scoring-k8s
+    targetRevision: HEAD
+    path: kubernetes/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

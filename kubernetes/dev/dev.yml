@@ -1,7 +1,4 @@
 ---
-# ==========================================
-# BACKEND : L'API Machine Learning
-# ==========================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,9 +42,6 @@ spec:
       targetPort: 8000
 
 ---
-# ==========================================
-# FRONTEND : L'interface utilisateur
-# ==========================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
