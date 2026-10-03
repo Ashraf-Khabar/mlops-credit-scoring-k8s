@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build: ./app/front-end/
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+
+  database:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: devops_user
+      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_DB: qa_database
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

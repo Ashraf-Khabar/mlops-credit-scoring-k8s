@@ -1,0 +1,92 @@
+---
+# ==========================================
+# BACKEND : L'API Machine Learning
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-api-deploy
+  namespace: dev
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ml-api
+  template:
+    metadata:
+      labels:
+        app: ml-api
+    spec:
+      containers:
+      - name: api-container
+        image: ml-api:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-api-svc
+  namespace: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: ml-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+
+---
+# ==========================================
+# FRONTEND : L'interface utilisateur
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-frontend-deploy
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ml-frontend
+  template:
+    metadata:
+      labels:
+        app: ml-frontend
+    spec:
+      containers:
+      - name: frontend-container
+        image: ml-frontend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-frontend-svc
+  namespace: dev
+spec:
+  type: NodePort
+  selector:
+    app: ml-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
