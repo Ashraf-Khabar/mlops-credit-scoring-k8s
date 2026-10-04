@@ -38,14 +38,23 @@ jobs:
           context: ./app/api
           push: true
           tags: akaax/ml-api:${{ steps.vars.outputs.sha_short }}
+    
+      - name: Construire et Pousser (Frontend)
+        uses: docker/build-push-action@v4
+        with:
+          context: ./app/front-end
+          push: true
+          tags: akaax/ml-frontend:${{ steps.vars.outputs.sha_short }}
 
       - name: Update dev.yml
         run: |
           # Chnage the image by the new one
+
           sed -i "s|image: .*ml-api:.*|image: akaax/ml-api:${{ steps.vars.outputs.sha_short }}|g" kubernetes/dev/dev.yml
-          
+          sed -i "s|image: .*ml-frontend:.*|image: akaax/ml-frontend:${{ steps.vars.outputs.sha_short }}|g" kubernetes/dev/dev.yml
+
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add kubernetes/dev/dev.yml
-          git commit -m "Auto-update: API to ${{ steps.vars.outputs.sha_short }} in DEV"
+          git commit -m "Auto-update: API and Frontend to ${{ steps.vars.outputs.sha_short }} in DEV"
           git push
