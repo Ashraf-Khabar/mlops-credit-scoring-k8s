@@ -1,4 +1,4 @@
-# ML DevSecOps — Credit Scoring Platform
+# ML DevSecOps Credit Scoring Platform
 
 End-to-end **MLOps / DevSecOps** project that delivers a credit scoring application with containerized services, CI/CD, GitOps (Argo CD), Kubernetes environments, and cluster monitoring.
 
