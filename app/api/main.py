@@ -2,8 +2,6 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
-# Test du pipeline CI.
-
 # L'API avec documentation Swagger intégrée
 app = FastAPI(
     title="API Credit Scoring",
