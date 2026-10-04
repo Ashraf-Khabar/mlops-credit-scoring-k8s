@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: api-container
-        image: ml-api:v1.0.1
+        image: akaax/ml-api:8923078
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
