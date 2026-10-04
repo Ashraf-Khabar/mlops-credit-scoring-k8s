@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: api-container
-        image: ml-api:latest
+        image: ml-api:v1.0.1
         imagePullPolicy: Never
         ports:
         - containerPort: 8000
@@ -59,7 +59,7 @@ spec:
     spec:
       containers:
       - name: frontend-container
-        image: ml-frontend:latest
+        image: ml-frontend:v1.0.1
         imagePullPolicy: Never
         ports:
         - containerPort: 80
