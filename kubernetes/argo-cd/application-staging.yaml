@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: credit-scoring-staging
+  name: credit-scoring-app-staging
   namespace: argocd
 spec:
   project: default

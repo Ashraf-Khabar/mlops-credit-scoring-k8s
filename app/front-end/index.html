@@ -1,7 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Credit Scoring</title>
+    <style>body { font-family: sans-serif; padding: 20px; }</style>
+</head>
 <body>
-    <h1>First container on devops</h1>
-    <p>This container is running inside nginx server and works perfectlly</p>
+    <h1>Simulation de Crédit</h1>
+    <form id="scoringForm">
+        <label>Âge : <input type="number" id="age" required></label><br><br>
+        <label>Revenu annuel : <input type="number" id="revenu" required></label><br><br>
+        <button type="submit">Calculer le risque</button>
+    </form>
+    <h2 id="resultat"></h2>
+
+    <script>
+        document.getElementById('scoringForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const age = document.getElementById('age').value;
+            const revenu = document.getElementById('revenu').value;
+            
+            try {
+                // ATTENTION: Remplacer cette URL par l'IP/Port NodePort de votre API Kubernetes
+                const response = await fetch('http://localhost:8000/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ age: parseInt(age), revenu: parseFloat(revenu) })
+                });
+                
+                const data = await response.json();
+                document.getElementById('resultat').innerText = 
+                    `Risque : ${data.niveau_risque} (Score : ${data.score_calcule})`;
+            } catch (error) {
+                console.error('Erreur API:', error);
+            }
+        });
+    </script>
 </body>
 </html>

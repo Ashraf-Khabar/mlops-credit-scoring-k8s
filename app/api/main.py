@@ -1,35 +1,36 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
-# 1. Initialisation de l'application
-app = FastAPI(title="MLOps API", description="API de prédiction pour notre projet")
+# L'API avec documentation Swagger intégrée
+app = FastAPI(
+    title="API Credit Scoring",
+    description="Prédiction du risque de défaut de paiement",
+    version="1.0.0"
+)
 
-# 2. Définition du format strict attendu en entrée (Validation Pydantic)
-class UserData(BaseModel):
+# Configuration CORS indispensable pour autoriser le frontend (Nginx) à appeler l'API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # En production, remplacez "*" par l'URL exacte du frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Structure attendue en entrée
+class DonneesClient(BaseModel):
     age: int
     revenu: float
 
-# 3. Route de santé (Healthcheck)
-# Kubernetes utilisera cette route en permanence pour vérifier si l'API est plantée
-@app.get("/")
-def read_root():
-    return {"status": "L'API MLOps est en ligne et fonctionnelle !"}
-
-# 4. Route de prédiction (Le cœur du MLOps)
 @app.post("/predict")
-def make_prediction(data: UserData):
-    # Dans un vrai projet, on chargerait ici un modèle scikit-learn ou PyTorch.
-    # Pour le test, voici notre logique simulée :
-    if data.age > 25 and data.revenu > 30000:
-        prediction = "Crédit Accordé"
-        probabilite = 0.85
-    else:
-        prediction = "Crédit Refusé"
-        probabilite = 0.40
-        
+def predict_score(donnees: DonneesClient):
+    # Logique de prédiction (à remplacer par votre modèle IA plus tard)
+    ratio = donnees.revenu / donnees.age
+    risque = "Élevé" if ratio < 1000 else "Faible"
+    
     return {
-        "age_recu": data.age,
-        "revenu_recu": data.revenu,
-        "prediction": prediction,
-        "probabilite": probabilite
+        "donnees_recues": {"age": donnees.age, "revenu": donnees.revenu},
+        "score_calcule": round(ratio, 2),
+        "niveau_risque": risque
     }
