@@ -1,0 +1,7 @@
+resources:
+  - ../../base
+namespace: staging-env
+namePrefix: staging-
+replicas:
+  - name: api-credit
+    count: 3

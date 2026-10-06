@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-credit
+spec:
+  selector:
+    matchLabels:
+      app: api-credit
+  template:
+    metadata:
+      labels:
+        app: api-credit
+    spec:
+      containers:
+      - name: api
+        image: ml-api:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"

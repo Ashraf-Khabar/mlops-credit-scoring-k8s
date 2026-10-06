@@ -1,0 +1,7 @@
+resources:
+  - ../../base
+namespace: dev-env
+namePrefix: dev-
+replicas:
+  - name: api-credit
+    count: 1

@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/Ashraf-Khabar/mlops-credit-scoring-k8s
     targetRevision: HEAD
-    path: kubernetes/staging
+    path: k8s/overlays/staging
   destination:
     server: https://kubernetes.default.svc
     namespace: staging
