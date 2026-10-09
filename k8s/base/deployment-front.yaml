@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: front
-        image: ml-frontend:latest
+        image: ml-frontend:1.0.3
         imagePullPolicy: Never
         ports:
         - containerPort: 80
