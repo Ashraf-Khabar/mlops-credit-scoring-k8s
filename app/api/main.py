@@ -21,3 +21,7 @@ async def predict(data: ClientData):
     prediction = model.predict(features)[0]
     
     return {"risque": int(prediction)}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
