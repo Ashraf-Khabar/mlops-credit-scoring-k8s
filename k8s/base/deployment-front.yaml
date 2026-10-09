@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: front-end-credit
+  name: front-credit
 spec:
   selector:
     matchLabels:
-      app: front-end-credit
+      app: front-credit
   template:
     metadata:
       labels:
-        app: front-end-credit
+        app: front-credit
     spec:
       containers:
       - name: front
-        image: ml-frontend:latest
+        image: ml-frontend:1.0.1
         imagePullPolicy: Never
         ports:
         - containerPort: 80
