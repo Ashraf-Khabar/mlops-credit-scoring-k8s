@@ -4,7 +4,7 @@ metadata:
   name: front-end-service-service
 spec:
   selector:
-    app: front-end
+    app: front-end-credit
   ports:
     - protocol: TCP
       port: 80

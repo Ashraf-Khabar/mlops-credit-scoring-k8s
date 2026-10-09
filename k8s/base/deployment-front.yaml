@@ -5,11 +5,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: front-end
+      app: front-end-credit
   template:
     metadata:
       labels:
-        app: front-end
+        app: front-end-credit
     spec:
       containers:
       - name: front

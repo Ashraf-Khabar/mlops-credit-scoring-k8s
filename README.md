@@ -53,28 +53,28 @@ This repository demonstrates a production-oriented workflow for an ML-backed API
 ## Architecture
 
 ```text
-┌─────────────────┐     push (app/**)      ┌──────────────────────┐
-│  Developer / Git │ ─────────────────────► │  GitHub Actions CI   │
-└────────┬────────┘                         │  - test              │
-         │                                  │  - build & push      │
-         │                                  │  - update dev.yml    │
-         │                                  └──────────┬───────────┘
-         │                                             │ commit image tags
-         ▼                                             ▼
-┌─────────────────┐                         ┌──────────────────────┐
-│  Git Repository │ ◄───────────────────────│  kubernetes/dev/dev.yml│
-│  (source of     │                         └──────────────────────┘
-│   truth)        │
-└────────┬────────┘
+┌───────────────────┐     push (app/**)      ┌──────────────────────┐
+│  Developer / Git  │ ─────────────────────► │  GitHub Actions CI   │
+└────────┬──────────┘                        │  - test              │
+         │                                   │  - build & push      │
+         │                                   │  - update dev.yml    │
+         │                                   └──────────┬───────────┘
+         │                                              │ commit image tags
+         ▼                                              ▼
+┌──────────────────┐                         ┌──────────────────────────┐
+│  Git Repository  │ ◄───────────────────────│  kubernetes/dev/dev.yml  │
+│  (source of      │                         └──────────────────────────┘
+│   truth)         │
+└────────┬─────────┘
          │ Argo CD sync (automated)
          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Kubernetes Cluster                        │
-│  ┌──────────────┐   ┌──────────────┐   ┌──────────────────┐ │
-│  │ namespace:dev │   │ ns: staging  │   │ monitoring stack │ │
-│  │ API + Front  │   │ API + Front  │   │ Prometheus/Grafana│ │
-│  └──────────────┘   └──────────────┘   └──────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                     Kubernetes Cluster                          │
+│  ┌───────────────┐   ┌──────────────┐   ┌────────────────────┐  │
+│  │ namespace:dev │   │ ns: staging  │   │ monitoring stack   │  │
+│  │ API + Front   │   │ API + Front  │   │ Prometheus/Grafana │  │
+│  └───────────────┘   └──────────────┘   └────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 **Request flow (in cluster):**
