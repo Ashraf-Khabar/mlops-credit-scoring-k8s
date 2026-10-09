@@ -4,7 +4,7 @@ metadata:
   name: credit-scoring-app-staging
   namespace: argocd
 spec:
-  project: default
+  project: cmsdp
   source:
     repoURL: https://github.com/Ashraf-Khabar/mlops-credit-scoring-k8s
     targetRevision: HEAD
