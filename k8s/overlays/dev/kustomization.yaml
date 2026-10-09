@@ -3,4 +3,4 @@ resources:
 namespace: dev
 replicas:
   - name: api-credit
-    count: 1
+    count: 3
