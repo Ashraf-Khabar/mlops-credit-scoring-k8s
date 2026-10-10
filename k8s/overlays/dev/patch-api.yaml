@@ -4,6 +4,9 @@ metadata:
   name: api-credit
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: api-credit
   template:
     metadata:
       labels:
