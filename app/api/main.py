@@ -24,5 +24,4 @@ async def predict(data: ClientData):
 
 @app.get("/health")
 def health_check():
-    # check health of the application
     return {"status": "healthy"}
