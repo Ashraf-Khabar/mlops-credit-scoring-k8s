@@ -3,9 +3,6 @@ kind: Deployment
 metadata:
   name: front-credit
 spec:
-  selector:
-    matchLabels:
-      app: front-credit
   replicas: 1
   template:
     metadata:

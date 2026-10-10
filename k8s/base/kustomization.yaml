@@ -3,3 +3,4 @@ resources:
   - service-api.yaml
   - deployment-front.yaml
   - service-front.yaml
+  - ingress.yaml

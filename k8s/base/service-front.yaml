@@ -5,7 +5,7 @@ metadata:
 spec:
   selector:
     app: application-credit-AI
-    tier: fronend
+    tier: frontend
   ports:
     - protocol: TCP
       port: 80
