@@ -11,7 +11,7 @@ spec:
     metadata:
       labels:
         app: application-credit-AI
-        tier: fronend
+        tier: frontend
     spec:
       containers:
       - name: front
