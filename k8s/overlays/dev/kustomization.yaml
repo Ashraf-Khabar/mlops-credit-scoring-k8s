@@ -9,3 +9,4 @@ resources:
 patches:
   - path: patch-api.yaml
   - path: patch-front.yaml
+  - path: patch-ingress.yaml

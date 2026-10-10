@@ -4,7 +4,7 @@ metadata:
   name: credit-app-ingress
 spec:
   rules:
-  - host: credit-app.local
+  - host: dev.credit-app
     http:
       paths:
       - path: /api

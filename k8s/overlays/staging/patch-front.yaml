@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: front-credit
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: front
+        image: ml-frontend:1.0.4
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
