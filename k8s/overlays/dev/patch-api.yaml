@@ -3,9 +3,6 @@ kind: Deployment
 metadata:
   name: api-credit
 spec:
-  selector:
-    matchLabels:
-      app: api-credit
   replicas: 3
   template:
     metadata:
@@ -14,6 +11,7 @@ spec:
     spec:
       containers:
       - name: api
+        image: ml-api:1.0.4
         resources:
           requests:
             cpu: 50m

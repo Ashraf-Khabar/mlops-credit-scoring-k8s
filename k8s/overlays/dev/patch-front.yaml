@@ -4,9 +4,6 @@ metadata:
   name: front-credit
 spec:
   replicas: 1
-  selector:
-    matchLabels:
-      app: front-credit
   template:
     metadata:
       labels:
@@ -14,6 +11,7 @@ spec:
     spec:
       containers:
       - name: front
+        image: ml-frontend:1.0.4
         resources:
           requests:
             cpu: 25m

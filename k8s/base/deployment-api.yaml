@@ -5,11 +5,13 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: api-credit
+      app: application-credit-AI
+      tier: backend
   template:
     metadata:
       labels:
-        app: api-credit
+        app: application-credit-AI
+        tier: backend
     spec:
       containers:
       - name: api

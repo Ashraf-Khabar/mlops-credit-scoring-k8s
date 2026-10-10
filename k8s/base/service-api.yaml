@@ -4,7 +4,8 @@ metadata:
   name: ml-api-svc
 spec:
   selector:
-    app: api-credit
+    app: application-credit-AI
+    tier: backend
   ports:
     - protocol: TCP
       port: 80

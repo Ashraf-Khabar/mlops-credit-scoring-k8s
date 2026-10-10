@@ -4,7 +4,8 @@ metadata:
   name: front-credit-svc
 spec:
   selector:
-    app: front-credit
+    app: application-credit-AI
+    tier: fronend
   ports:
     - protocol: TCP
       port: 80
