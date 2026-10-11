@@ -4,3 +4,7 @@ resources:
   - deployment-front.yaml
   - service-front.yaml
   - ingress.yaml
+  - db-secret.yaml
+  - db-pvc.yaml
+  - db-statefulset.yaml
+  - db-service.yaml
