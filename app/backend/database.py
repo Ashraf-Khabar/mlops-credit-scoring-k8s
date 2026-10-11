@@ -3,7 +3,13 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
 
 # L'URL pointe vers le Service Kubernetes 'postgres-svc'
-SQLALCHEMY_DATABASE_URL = "postgresql://admin:adminpassword@postgres-svc:5432/credit_db"
+import os
+
+# Lit la variable d'environnement, ou utilise l'adresse Kubernetes par défaut
+SQLALCHEMY_DATABASE_URL = os.getenv(
+    "DATABASE_URL", 
+    "postgresql+psycopg2://admin:adminpassword@postgres-svc:5432/credit_db"
+)
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
