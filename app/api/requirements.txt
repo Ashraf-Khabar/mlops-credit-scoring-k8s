@@ -3,3 +3,8 @@ uvicorn==0.24.0
 pydantic==2.5.2
 scikit-learn
 joblib
+sqlalchemy
+psycopg2-binary
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
