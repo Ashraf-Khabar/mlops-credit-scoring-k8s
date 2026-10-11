@@ -4,4 +4,4 @@ metadata:
   name: credit-app-ingress
 spec:
   rules:
-  - host: dev.credit-app
+  - host: dev.credit-app.local
