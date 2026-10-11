@@ -2,35 +2,88 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Credit Scoring</title>
-    <style>body { font-family: sans-serif; padding: 20px; }</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de Crédit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Simulation de Crédit</h1>
-    <form id="scoringForm">
-        <label>Âge : <input type="number" id="age" required></label><br><br>
-        <label>Revenu annuel : <input type="number" id="revenu" required></label><br><br>
-        <button type="submit">Calculer le risque</button>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
 
-    </form>
-    <h2 id="resultat"></h2>
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">Évaluation de Crédit</h2>
+        
+        <form id="creditForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Âge</label>
+                <input type="number" id="age" required min="18" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Revenu Annuel (€)</label>
+                <input type="number" id="income" required min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Montant du Prêt (€)</label>
+                <input type="number" id="loan_amount" required min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Historique de crédit (années)</label>
+                <input type="number" id="credit_history" required min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+            </div>
+
+            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Analyser la demande
+            </button>
+        </form>
+
+        <!-- Zone d'affichage du résultat -->
+        <div id="result" class="mt-6 hidden rounded-md p-4">
+            <h3 id="resultTitle" class="text-lg font-medium"></h3>
+            <p id="resultMessage" class="text-sm mt-1"></p>
+            <p id="resultProb" class="text-sm font-bold mt-2"></p>
+        </div>
+    </div>
 
     <script>
-        document.getElementById('scoringForm').addEventListener('submit', async (e) => {
+        document.getElementById('creditForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const age = document.getElementById('age').value;
-            const revenu = document.getElementById('revenu').value;
             
+            const data = {
+                age: parseInt(document.getElementById('age').value),
+                income: parseFloat(document.getElementById('income').value),
+                loan_amount: parseFloat(document.getElementById('loan_amount').value),
+                credit_history_length: parseInt(document.getElementById('credit_history').value)
+            };
+
             try {
-                const response = await fetch('http://localhost:8000/predict', {
+                // Appel vers l'API via le chemin défini dans l'Ingress
+                const response = await fetch('/api/credit/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ age: parseInt(age), revenu: parseFloat(revenu) })
+                    body: JSON.stringify(data)
                 });
-                
-                const data = await response.json();
-                document.getElementById('resultat').innerText = 
-                    `Risque : ${data.niveau_risque} (Score : ${data.score_calcule})`;
+
+                const resultDiv = document.getElementById('result');
+                resultDiv.classList.remove('hidden', 'bg-green-100', 'bg-red-100', 'text-green-800', 'text-red-800');
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const isApproved = result.status === 'Approuvé';
+                    
+                    resultDiv.classList.add(isApproved ? 'bg-green-100' : 'bg-red-100');
+                    resultDiv.classList.add(isApproved ? 'text-green-800' : 'text-red-800');
+                    
+                    document.getElementById('resultTitle').textContent = `Statut : ${result.status}`;
+                    document.getElementById('resultMessage').textContent = result.message;
+                    document.getElementById('resultProb').textContent = `Probabilité : ${(result.probability * 100).toFixed(1)}%`;
+                } else {
+                    const error = await response.json();
+                    resultDiv.classList.add('bg-red-100', 'text-red-800');
+                    document.getElementById('resultTitle').textContent = 'Erreur de validation';
+                    document.getElementById('resultMessage').textContent = error.detail || 'Vérifiez vos données.';
+                    document.getElementById('resultProb').textContent = '';
+                }
             } catch (error) {
                 console.error('Erreur API:', error);
             }

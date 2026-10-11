@@ -1,27 +1,15 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-import joblib
-import numpy as np
+from routers import credit
 
-app = FastAPI()
+app = FastAPI(
+    title="API de Credit Scoring",
+    description="API avancée d'évaluation des risques de crédit",
+    version="1.0.0"
+)
 
-# Chargement du modèle d'Intelligence Artificielle
-model = joblib.load("model.joblib")
-
-class ClientData(BaseModel):
-    age: int
-    revenu: float
-
-@app.post("/predict")
-async def predict(data: ClientData):
-    # Transformation des données en format lisible par le modèle
-    features = np.array([[data.age, data.revenu]])
-    
-    # Génération de la prédiction
-    prediction = model.predict(features)[0]
-    
-    return {"risque": int(prediction)}
+# Inclusion des routes
+app.include_router(credit.router)
 
 @app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+async def health_check():
+    return {"status": "ok", "service": "credit-scoring-api"}
