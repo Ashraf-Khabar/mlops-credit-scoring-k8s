@@ -27,17 +27,17 @@ spec:
             memory: "512Mi"
         startupProbe:
           httpGet:
-            path: /statistics
+            path: /health
             port: 8000
           failureThreshold: 60
           periodSeconds: 2
         livenessProbe:
           httpGet:
-            path: /statistics
+            path: /health
             port: 8000
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /statistics
+            path: /health
             port: 8000
           periodSeconds: 5

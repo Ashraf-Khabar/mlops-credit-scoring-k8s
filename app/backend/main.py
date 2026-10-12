@@ -67,6 +67,9 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Utilisateur créé avec succès"}
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
 @app.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
