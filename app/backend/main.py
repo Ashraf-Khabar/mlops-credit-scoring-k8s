@@ -1,121 +1,63 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from jose import JWTError, jwt
-from pydantic import BaseModel
-from database import get_db, UserDB, CreditHistoryDB, engine, Base
 import os
 
-# --- Configuration JWT ---
-SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key-pour-le-dev")
-ALGORITHM = "HS256"
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+from database import SessionLocal, UserDB, init_db
+from auth_utils import hash_password
+from routers import auth, users, credit
 
-# --- Initialisation FastAPI ---
-app = FastAPI(title="CreditPro AI API")
+app = FastAPI(
+    title="CreditPro AI API",
+    description="SaaS de scoring crédit — auth, users, prédictions",
+    version="2.0.0",
+)
 
-# Configuration CORS pour autoriser Next.js (Port 3000)
+origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[o.strip() for o in origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- Fonction de validation de l'utilisateur (Sécurisée anti-crash) ---
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Identifiants invalides ou jeton expiré",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        # Tente de décoder le JWT. Si le format est mauvais (ex: "null"), ça lève une JWTError
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        # On intercepte l'erreur proprement pour renvoyer une 401 au lieu d'une 500
-        raise credentials_exception
-        
-    user = db.query(UserDB).filter(UserDB.username == username).first()
-    if user is None:
-        raise credentials_exception
-    return user
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(credit.router)
 
-# --- Modèles de données (Pydantic) ---
-class UserCreate(BaseModel):
-    username: str
-    password: str
-
-class PredictRequest(BaseModel):
-    age: int
-    income: float
-    loan_amount: float
-    credit_history_length: int
-
-# --- Routes API ---
-
-@app.post("/register")
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    # Dans un vrai projet de prod, il faut hasher le mot de passe ici (ex: avec passlib)
-    db_user = UserDB(username=user.username, hashed_password=user.password)
-    db.add(db_user)
-    db.commit()
-    return {"message": "Utilisateur créé avec succès"}
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    return {"status": "ok", "version": "2.0.0"}
 
-@app.post("/token")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(UserDB).filter(UserDB.username == form_data.username).first()
-    # Vérification basique (à remplacer par une vérification de hash en prod)
-    if not user or user.hashed_password != form_data.password:
-        raise HTTPException(status_code=400, detail="Nom d'utilisateur ou mot de passe incorrect")
-    
-    # Création du vrai jeton JWT
-    access_token = jwt.encode({"sub": user.username}, SECRET_KEY, algorithm=ALGORITHM)
-    return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/statistics")
-def get_statistics(db: Session = Depends(get_db), current_user: UserDB = Depends(get_current_user)):
-    total = db.query(CreditHistoryDB).filter(CreditHistoryDB.user_id == current_user.id).count()
-    approved = db.query(CreditHistoryDB).filter(
-        CreditHistoryDB.user_id == current_user.id,
-        CreditHistoryDB.status.in_(["Approuvé", "Approved"])
-    ).count()
-    
-    rejected = total - approved
-    approval_rate = round((approved / total * 100), 1) if total > 0 else 0.0
-    
-    return {
-        "total": total,
-        "approved": approved,
-        "rejected": rejected,
-        "approval_rate": approval_rate
-    }
+def seed_admin():
+    db: Session = SessionLocal()
+    try:
+        admin_user = os.getenv("ADMIN_USERNAME", "admin")
+        admin_pass = os.getenv("ADMIN_PASSWORD", "admin123")
+        existing = db.query(UserDB).filter(UserDB.username == admin_user).first()
+        if not existing:
+            db.add(
+                UserDB(
+                    username=admin_user,
+                    email="admin@creditpro.ai",
+                    full_name="Administrateur",
+                    hashed_password=hash_password(admin_pass),
+                    role="admin",
+                    is_active=True,
+                )
+            )
+            db.commit()
+        elif existing.role != "admin":
+            existing.role = "admin"
+            db.commit()
+    finally:
+        db.close()
 
-@app.post("/predict")
-def predict(request: PredictRequest, db: Session = Depends(get_db), current_user: UserDB = Depends(get_current_user)):
-    # Simulation du modèle ML (Placez votre logique de prédiction réelle ici)
-    is_approved = request.income > (request.loan_amount * 0.3)
-    status_result = "Approuvé" if is_approved else "Refusé"
-    probability = 0.85 if is_approved else 0.20
 
-    # Sauvegarde dans PostgreSQL
-    history = CreditHistoryDB(
-        user_id=current_user.id,
-        age=request.age,
-        income=request.income,
-        loan_amount=request.loan_amount,
-        status=status_result
-    )
-    db.add(history)
-    db.commit()
-
-    return {"status": status_result, "probability": probability}
+@app.on_event("startup")
+def on_startup():
+    init_db()
+    seed_admin()
