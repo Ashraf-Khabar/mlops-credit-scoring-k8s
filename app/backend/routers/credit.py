@@ -1,8 +1,11 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timedelta
+import joblib
+
+# Assurez-vous que vos imports locaux sont corrects
 from database import get_db, UserDB, CreditHistoryDB
 from schemas import (
     PredictRequest,
@@ -12,10 +15,21 @@ from schemas import (
     Statistics,
 )
 from deps import get_current_user, require_admin
-from services.ml_service import ml_service
+
+# Il semble que vous ayez une classe ml_service, mais l'inférence
+# est parfois gérée par model.predict(). Je l'importe par sécurité.
+try:
+    from services.ml_service import ml_service
+except ImportError:
+    pass
 
 router = APIRouter(tags=["credit"])
 
+# Chargement du modèle au niveau du routeur (si ml_service n'est pas utilisé)
+try:
+    model = joblib.load("model.joblib")
+except FileNotFoundError:
+    model = None
 
 @router.get("/statistics", response_model=Statistics)
 def get_statistics(
@@ -69,33 +83,56 @@ def get_statistics(
 
 
 @router.post("/predict", response_model=PredictResponse)
-def predict(
+def predict_score(
     request: PredictRequest,
     db: Session = Depends(get_db),
     current_user: UserDB = Depends(get_current_user),
 ):
-    status_result, probability, message = ml_service.predict(request)
+    try:
+        # Si vous utilisez votre classe ml_service
+        if 'ml_service' in globals():
+             status_result, probability, message = ml_service.predict(request)
+        
+        # Sinon, si vous utilisez joblib directement
+        elif model is not None:
+             features = [[
+                 request.age, 
+                 request.income, 
+                 request.loan_amount, 
+                 request.credit_history_length
+             ]]
+             probability = float(model.predict_proba(features)[0][1])
+             approved = probability > 0.65 # Seuil
+             
+             status_result = "Approuvé" if approved else "Refusé"
+             message = "Dossier validé par l'algorithme." if approved else "Risque trop élevé."
+        else:
+             raise HTTPException(status_code=500, detail="Modèle ML non trouvé")
 
-    history = CreditHistoryDB(
-        user_id=current_user.id,
-        age=request.age,
-        income=request.income,
-        loan_amount=request.loan_amount,
-        credit_history_length=request.credit_history_length,
-        status=status_result,
-        probability=probability,
-        message=message,
-    )
-    db.add(history)
-    db.commit()
-    db.refresh(history)
+        # Sauvegarde dans PostgreSQL via SQLAlchemy
+        history = CreditHistoryDB(
+            user_id=current_user.id,
+            age=request.age,
+            income=request.income,
+            loan_amount=request.loan_amount,
+            credit_history_length=request.credit_history_length,
+            status=status_result,
+            probability=probability,
+            message=message,
+        )
+        db.add(history)
+        db.commit()
+        db.refresh(history)
 
-    return PredictResponse(
-        id=history.id,
-        status=status_result,
-        probability=probability,
-        message=message,
-    )
+        return PredictResponse(
+            id=history.id,
+            status=status_result,
+            probability=probability,
+            message=message,
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/history", response_model=HistoryPage)
@@ -117,6 +154,7 @@ def get_history(
         .limit(page_size)
         .all()
     )
+    
     items = [
         HistoryItem(
             id=r.id,
@@ -150,6 +188,7 @@ def get_all_history(
         .limit(page_size)
         .all()
     )
+    
     items = [
         HistoryItem(
             id=r.id,
@@ -166,41 +205,3 @@ def get_all_history(
         for r, username in rows
     ]
     return HistoryPage(items=items, total=total, page=page, page_size=page_size)
-
-@router.post("/", response_model=PredictResponse)
-async def predict_score(request: PredictRequest, db: Session = Depends(get_db)):
-    try:
-        # 1. Préparation des features pour le modèle ML
-        features = [[
-            request.age, 
-            request.income, 
-            request.loan_amount, 
-            request.credit_history_length
-        ]]
-        
-        # 2. Inférence
-        probability = float(model.predict_proba(features)[0][1])
-        approved = probability > 0.65 # Seuil d'approbation métier (ex: 65%)
-        
-        # 3. Sauvegarde dans PostgreSQL
-        db_record = CreditPrediction(
-            age=request.age,
-            income=request.income,
-            loan_amount=request.loan_amount,
-            credit_history_length=request.credit_history_length,
-            probability=probability,
-            approved=approved
-        )
-        db.add(db_record)
-        db.commit()
-
-        # 4. Réponse formatée pour l'UI React
-        return PredictResponse(
-            status="Approuvé" if approved else "Refusé",
-            message="Dossier validé par l'algorithme." if approved else "Risque trop élevé.",
-            probability=probability
-        )
-
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
