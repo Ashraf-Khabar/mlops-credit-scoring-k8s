@@ -22,11 +22,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(credit.router)
+# SOLUTION ICI : On ajoute le préfixe "/api" à tous vos routeurs.
+# Ainsi, "/register" devient "/api/register" et "/token" devient "/api/token"
+app.include_router(auth.router, prefix="/api")
+app.include_router(users.router, prefix="/api")
+app.include_router(credit.router, prefix="/api")
 
-
+# On laisse le health_check à la racine ("/") pour que les sondes Kubernetes fonctionnent
 @app.get("/health")
 def health_check():
     return {"status": "ok", "version": "2.0.0"}

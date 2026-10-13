@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: front
-        image: ml-frontend:1.1.10
+        image: ml-frontend:1.1.11
         resources:
           requests:
             cpu: 25m
