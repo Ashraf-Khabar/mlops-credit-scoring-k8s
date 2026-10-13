@@ -8,8 +8,8 @@ import type {
   User,
 } from "./types";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "/api";
+// Modification 1 : Utilisation du chemin relatif /api pour l'Ingress Kubernetes
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export const api = axios.create({ baseURL: API_URL });
 
@@ -27,11 +27,10 @@ export async function login(
   username: string,
   password: string
 ): Promise<TokenResponse> {
-  const form = new URLSearchParams();
-  form.append("username", username);
-  form.append("password", password);
-  const { data } = await api.post<TokenResponse>("/token", form, {
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  // Modification 2 : Envoi direct en format JSON plutôt qu'en formulaire (x-www-form-urlencoded)
+  const { data } = await api.post<TokenResponse>("/token", {
+    username,
+    password,
   });
   return data;
 }
