@@ -166,3 +166,41 @@ def get_all_history(
         for r, username in rows
     ]
     return HistoryPage(items=items, total=total, page=page, page_size=page_size)
+
+@router.post("/", response_model=PredictResponse)
+async def predict_score(request: PredictRequest, db: Session = Depends(get_db)):
+    try:
+        # 1. Préparation des features pour le modèle ML
+        features = [[
+            request.age, 
+            request.income, 
+            request.loan_amount, 
+            request.credit_history_length
+        ]]
+        
+        # 2. Inférence
+        probability = float(model.predict_proba(features)[0][1])
+        approved = probability > 0.65 # Seuil d'approbation métier (ex: 65%)
+        
+        # 3. Sauvegarde dans PostgreSQL
+        db_record = CreditPrediction(
+            age=request.age,
+            income=request.income,
+            loan_amount=request.loan_amount,
+            credit_history_length=request.credit_history_length,
+            probability=probability,
+            approved=approved
+        )
+        db.add(db_record)
+        db.commit()
+
+        # 4. Réponse formatée pour l'UI React
+        return PredictResponse(
+            status="Approuvé" if approved else "Refusé",
+            message="Dossier validé par l'algorithme." if approved else "Risque trop élevé.",
+            probability=probability
+        )
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

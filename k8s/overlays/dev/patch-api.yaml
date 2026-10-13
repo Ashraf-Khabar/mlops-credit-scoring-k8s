@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: ml-api:1.1.4
+        image: ml-api:1.1.5
         resources:
           requests:
             cpu: 50m
@@ -16,3 +16,19 @@ spec:
           limits:
             cpu: 250m
             memory: 256Mi
+        env:
+
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_HOST
+          value: "db-service"
+        - name: POSTGRES_DB
+          value: "credit_db"
