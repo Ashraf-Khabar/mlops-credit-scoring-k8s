@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: ml-api:1.1.5
+        image: ml-api:1.1.6
         resources:
           requests:
             cpu: 50m
